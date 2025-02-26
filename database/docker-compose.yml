@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  db-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - data-volume:/data
+    environment:
+      - DB_PATH=/data/edge_devices.db
+    restart: unless-stopped
+
+volumes:
+  data-volume:
+    # This creates a named volume for persistent storage
