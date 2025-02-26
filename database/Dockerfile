@@ -11,8 +11,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the database manager script
-COPY db_manager.py /app/
-RUN chmod +x /app/db_manager.py
+COPY main.py /app/
+RUN chmod +x /app/main.py
 
 # Create a directory for the database
 RUN mkdir -p /data
@@ -25,4 +25,4 @@ ENV PYTHONUNBUFFERED=1
 VOLUME ["/data"]
 
 # Run the database manager script when the container starts
-CMD ["python", "/app/db_manager.py"]
+CMD ["python", "/app/main.py"]
