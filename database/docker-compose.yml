@@ -1,16 +1,11 @@
-version: '3'
-
 services:
   db-service:
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - data-volume:/data
+      - ./data-volume:/data
     environment:
       - DB_PATH=/data/edge_devices.db
+    command: sh -c "python /app/main.py && tail -f /dev/null"
     restart: unless-stopped
-
-volumes:
-  data-volume:
-    # This creates a named volume for persistent storage
