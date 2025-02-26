@@ -46,7 +46,7 @@ def get_latest_image():
     return encoded_image, latest_image_path
 
 
-def publish_data():
+def publish_data(status):
     """Publish image and metadata as a single MQTT message."""
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # Fix for deprecation warning
     client.connect(BROKER, PORT, 60)
@@ -67,7 +67,8 @@ def publish_data():
         "timestamp": timestamp,
         "camera_sector": CAMERA_SECTOR,
         "image_name": os.path.basename(image_path),
-        "image": encoded_image  # Embed image as base64 string
+        "image": encoded_image,  # Embed image as base64 string
+        "status": status
     }
 
     # Publish the payload
@@ -79,5 +80,5 @@ def publish_data():
 
 if __name__ == "__main__":
     while True:
-        publish_data()
+        publish_data("hazard")
         time.sleep(5)  # Publish every 5 seconds
