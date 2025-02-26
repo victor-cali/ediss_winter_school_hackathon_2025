@@ -66,9 +66,9 @@ def publish_data(status):
         "ip_address": ip_address,
         "timestamp": timestamp,
         "camera_sector": CAMERA_SECTOR,
-        "image_name": os.path.basename(image_path),
-        "image": encoded_image,  # Embed image as base64 string
-        "status": status
+        "status": status,
+        # "image_name": os.path.basename(image_path),
+        "image": encoded_image  # Embed image as base64 string
     }
 
     # Publish the payload
