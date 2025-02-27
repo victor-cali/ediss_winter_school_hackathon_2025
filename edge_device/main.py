@@ -1,139 +1,136 @@
-import paho.mqtt.client as mqtt
+import cv2
+import collections
 import json
 import time
 import socket
 import base64
-import collections  # For sliding window buffer
-import cv2
-import torch
+import paho.mqtt.client as mqtt
 from ultralytics import YOLO
 from datetime import datetime
 
-# MQTT Configuration (Ensure broker is accessible)
-BROKER = "localhost"  # Use "localhost" if running on native Linux
+# --- Configurações MQTT ---
+BROKER = "localhost"
 PORT = 1883
 TOPIC = "camera/"
 CAMERA_SECTOR = "Sector A"
 
-# Use Local Camera Instead of IP Stream
-camera = cv2.VideoCapture(0)  # Change from IP camera to local webcam
+# --- Configuração da Agregação Temporal ---
+window_duration = 1  # segundos
+fps = 20  # taxa de quadros por segundo (aproximada)
+window_size = window_duration * fps  # tamanho da janela deslizante
+threshold = 0.6  # Se >=60% dos quadros indicarem perigo, marcar como HAZARD
 
-if not camera.isOpened():
-    print("Error: Unable to access local camera")
-    exit(1)
-
-# --- Load YOLOv8 Model ---
-MODEL_PATH = "model/best.pt"  # Replace with your trained YOLOv8 model
-model = YOLO(MODEL_PATH)  # Load the YOLOv8 model once
-class_names = model.names  # A dict mapping class ids to class names
-
-# --- Define PPE Config ---
+# --- Configuração dos EPIs ---
 ppe_config = {
     "hairnet": {"pos": "hairnet", "neg": "no_hairnet_helmet"}
 }
 
-# --- Define Sliding Window Buffer (For Smoother Detection) ---
-window_size = 5  # Adjust based on stability needed
+# Criar buffers para cada item de EPI
 buffers = {item: collections.deque(maxlen=window_size) for item in ppe_config}
 
-# Track last published status
-last_status = None
+# --- Inicializar modelo YOLO ---
+MODEL_PATH = "model/best.pt"
+model = YOLO(MODEL_PATH)
+class_names = model.names
+
+# --- Captura de Vídeo ---
+camera = cv2.VideoCapture(0)
+if not camera.isOpened():
+    print("Erro: Não foi possível acessar a câmera")
+    exit(1)
 
 def get_ip_address():
-    """Get the local IP address of the machine."""
-    return socket.gethostbyname(socket.gethostname())
+    # return socket.gethostbyname(socket.gethostname())
+    return "127.0.0.1"
 
-def detect_ppe(frame):
-    """Perform PPE detection using YOLOv8 and classify as COMPLIANT or NON-COMPLIANT."""
-    results = model(frame)  # Run YOLO detection
-
-    detected_classes = [class_names[int(box.cls)] for box in results[0].boxes]  # Extract class names
-
-    # Process detections per PPE item
-    ppe_status = {}
-    for item, labels in ppe_config.items():
-        if labels["pos"] in detected_classes:
-            buffers[item].append("COMPLIANT")
-        elif labels["neg"] in detected_classes:
-            buffers[item].append("NON_COMPLIANT")
-        else:
-            buffers[item].append("UNKNOWN")  # No detection
-
-        # Determine majority status from buffer
-        ppe_status[item] = max(set(buffers[item]), key=buffers[item].count)
-
-    # Combine all PPE statuses
-    final_status = "HAZARD" if "NON_COMPLIANT" in ppe_status.values() else "SAFE"
-    return final_status, results[0].boxes  # Return status and bounding boxes
 
 def publish_data(status, encoded_image):
-    """Publish only when the status changes."""
-    global last_status
-    if status == last_status:
-        return  # No change, so don't publish
-
-    last_status = status  # Update last published status
-
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.connect(BROKER, PORT, 60)
-
-    # Get metadata
-    timestamp = datetime.utcnow().isoformat()
-    ip_address = get_ip_address()
-
-    # Construct the JSON payload
+    
     payload = {
-        "ip_address": ip_address,
-        "timestamp": timestamp,
+        "ip_address": get_ip_address(),
+        "timestamp": datetime.utcnow().isoformat(),
         "camera_sector": CAMERA_SECTOR,
         "status": status,
-        "image": encoded_image  # Embed image as base64 string
+        "image": encoded_image
     }
-
-    # Publish the payload
+    
     topic_with_id = f"{TOPIC}1"
     client.publish(topic_with_id, json.dumps(payload))
-    print(f"Published data to {topic_with_id}: {json.dumps(payload)[:100]}...")  # Truncated for readability
-
+    print(f"Publicado: {json.dumps(payload)[:100]}...")
     client.disconnect()
 
-if __name__ == "__main__":
-    while True:
-        ret, frame = camera.read()
+while True:
+    ret, frame = camera.read()
+    if not ret:
+        print("Error: Failed to capture image")
+        break
+    
+      # Run YOLO inference on the current frame.
+    results = model(frame)
+    # Draw per-frame detections (bounding boxes and labels).
+    annotated_frame = results[0].plot()
 
-        if not ret:
-            print("Error: Lost connection to the camera, retrying...")
-            camera.release()
-            time.sleep(2)  # Wait before retrying
-            camera = cv2.VideoCapture(-1)  # Reconnect to the local camera
-            continue  # Skip this iteration if no frame received
+    # --- Determine Per-Frame PPE Compliance ---
+    # Initialize each PPE item status as "safe" (0).
+    # A status of 1 means that for that PPE item a non-compliant detection was found.
+    frame_status = {item: 0 for item in ppe_config}
+    for box in results[0].boxes:
+        class_id = int(box.cls[0])
+        label = class_names[class_id].lower().strip()
+        # For each PPE item, if the detection matches the negative (non‑compliant) label, mark as hazard.
+        for item, mapping in ppe_config.items():
+            if label == mapping["neg"]:
+                frame_status[item] = 1  # Hazard for this PPE item
+                # Once a negative detection is found for an item, no need to check further for that item.
 
-        # Run YOLOv8 PPE detection
-        status, boxes = detect_ppe(frame)
+    # --- Update Buffers ---
+    # Append the per-frame status (0 or 1) for each PPE item.
+    for item in buffers:
+        buffers[item].append(frame_status[item])
 
-        # Draw bounding boxes on detected objects
-        for box in boxes:
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            label = class_names[int(box.cls)]
-            confidence = box.conf[0].item()
-            color = (0, 255, 0) if label in [v["pos"] for v in ppe_config.values()] else (0, 0, 255)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-            cv2.putText(frame, f"{label} ({confidence:.2f})", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+    # --- Aggregate the Results Over the Sliding Window ---
+    aggregated_status = {}
+    for item in buffers:
+        # If we haven't yet filled the window, default to safe (0)
+        if len(buffers[item]) == window_size:
+            avg_status = sum(buffers[item]) / window_size
+        else:
+            avg_status = 0
+        aggregated_status[item] = avg_status
 
-        # Show the camera feed with detections
-        cv2.imshow("Live Camera Feed - PPE Detection", frame)
+    # --- Determine Global Hazard State ---
+    # If any PPE item is aggregated as hazardous, we set the global state to HAZARD.
+    global_hazard = any(aggregated_status[item] >= threshold for item in aggregated_status)
+    if global_hazard:
+        state_color = (0, 0, 255)  # Red for hazard (BGR)
+        state_text = "HAZARD"
+    else:
+        state_color = (0, 255, 0)  # Green for safe
+        state_text = "SAFE"
 
-        # Encode the frame to base64 for MQTT publishing
-        _, buffer = cv2.imencode(".jpg", frame)
-        encoded_image = base64.b64encode(buffer).decode()
+    # --- Draw the Global Indicator ---
+    # Draw a circle to represent the hazard light.
+    cv2.circle(annotated_frame, (50, 50), 20, state_color, -1)
+    cv2.putText(annotated_frame, state_text, (80, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, state_color, 2)
 
-        # Publish only if status changes
-        publish_data(status, encoded_image)
+    # --- Optionally, Display Per-PPE Status on the Frame ---
+    y0 = 100
+    for i, item in enumerate(aggregated_status):
+        text = f"{item.capitalize()}: {'Hazard' if aggregated_status[item] >= threshold else 'Safe'} ({aggregated_status[item]:.2f})"
+        cv2.putText(annotated_frame, text, (50, y0 + i * 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, state_color, 2)
 
-        # Break loop on 'q' key press
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    # Show the annotated frame.
+    cv2.imshow('PPE Safety POC', annotated_frame)
+    
+    _, buffer = cv2.imencode(".jpg", annotated_frame)
+    encoded_image = base64.b64encode(buffer).decode()
+    publish_data(state_text, encoded_image)
 
-    # Cleanup
-    camera.release()
-    cv2.destroyAllWindows()
+    # Break the loop when 'q' is pressed.
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+camera.release()
+cv2.destroyAllWindows()
