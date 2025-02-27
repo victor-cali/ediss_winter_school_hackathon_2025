@@ -14,18 +14,11 @@ TOPIC = "camera/"
 CAMERA_SECTOR = "Sector A"  # Define the sector of the camera
 IMAGE_FOLDER = "./images"  # Folder containing images
 
+
 def get_ip_address():
-    """Get the IP address of the current machine dynamically."""
-    try:
-        # Create a socket connection to an external host and get the local IP
-        # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # s.connect(("8.8.8.8", 80))  # Google public DNS (does not establish a connection)
-        # ip_address = s.getsockname()[0]
-        # s.close()
-        return "my_fake_ip_address"
-    except Exception as e:
-        print(f"Could not determine IP address: {e}")
-        return "Unknown"
+    """Get the local IP address of the machine."""
+    return socket.gethostbyname(socket.gethostname())
+
 
 def get_latest_image():
     """Retrieve the most recent image file from the folder and encode it as base64."""
