@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import Tooltip from "@mui/material/Tooltip";
 import LogoImg from "../assets/logo.png";
 import { Button } from "@mui/material";
+import { useMqtt } from "../hooks/mqtt";
 import tmp from "../assets/example.json";
 
 const initialAlerts = [
@@ -76,6 +77,18 @@ const initialAlerts = [
   },
 ];
 export default function Header() {
+  const { message, isConnected } = useMqtt();
+  // count
+  const [alerts, setAlerts] = React.useState(initialAlerts);
+  React.useEffect(() => {
+    if (message) {
+      // Assuming `message` is an object with the structure of an alert
+      setAlerts((prevAlerts) => [
+        ...prevAlerts,
+        { ...JSON.parse(message), id: prevAlerts.length },
+      ]);
+    }
+  }, [message]);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -84,8 +97,8 @@ export default function Header() {
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const activeAlerts = React.useMemo(
-    () => initialAlerts.filter((alert) => alert.status === "hazard"),
-    []
+    () => alerts.filter((alert) => alert.status === "hazard"),
+    [alerts]
   ).length;
 
   const handleProfileMenuOpen = (event) => {
@@ -160,11 +173,11 @@ export default function Header() {
       <MenuItem onClick={() => console.log("clickedd")}>
         <IconButton
           size="large"
-          aria-label={`show ${activeAlerts} new notifications`}
+          aria-label={`show ${activeAlerts-1} new notifications`}
           color="inherit"
           onClick={() => navigate("/alerts")}
         >
-          <Badge badgeContent={activeAlerts} color="error">
+          <Badge badgeContent={activeAlerts-1} color="error">
             <NotificationsIcon />
           </Badge>
         </IconButton>
@@ -257,11 +270,11 @@ export default function Header() {
             >
               <IconButton
                 size="large"
-                aria-label={`show ${activeAlerts} new notifications`}
+                aria-label={`show ${activeAlerts-1} new notifications`}
                 color="inherit"
                 onClick={() => navigate("/alerts")}
               >
-                <Badge badgeContent={activeAlerts} color="error">
+                <Badge badgeContent={activeAlerts-1} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
