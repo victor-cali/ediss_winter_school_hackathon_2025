@@ -70,7 +70,7 @@ export default function Alerts() {
       (cameraFilter === "all" || alert.camera_sector === cameraFilter)
     );
   });
-
+console.log('alert', filteredAlerts[0]?.status)
   return (
     <Box display="flex" p={3}>
       <Box flex={3.5}>
@@ -91,7 +91,7 @@ export default function Alerts() {
             <TableBody>
               {filteredAlerts.length > 0 ? (
                 filteredAlerts.map((alert) => {
-                  const isHazard = alert.status === "hazard";
+                  const isHazard = alert.status === "HAZARD";
                   return (
                     <TableRow
                       key={alert.id}

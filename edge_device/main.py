@@ -60,8 +60,10 @@ def publish_data(status, encoded_image):
     client.publish(topic_with_id, json.dumps(payload))
     print(f"Publicado: {json.dumps(payload)[:100]}...")
     client.disconnect()
-
+state_variable = False
 while True:
+
+    
     ret, frame = camera.read()
     if not ret:
         print("Error: Failed to capture image")
@@ -124,9 +126,11 @@ while True:
     # Show the annotated frame.
     cv2.imshow('PPE Safety POC', annotated_frame)
     
-    _, buffer = cv2.imencode(".jpg", annotated_frame)
-    encoded_image = base64.b64encode(buffer).decode()
-    publish_data(state_text, encoded_image)
+    if state_variable != global_hazard:
+        _, buffer = cv2.imencode(".jpg", annotated_frame)
+        encoded_image = base64.b64encode(buffer).decode()
+        publish_data(state_text, encoded_image)
+        state_variable = global_hazard
 
     # Break the loop when 'q' is pressed.
     if cv2.waitKey(1) & 0xFF == ord('q'):
