@@ -3,6 +3,12 @@ import paho.mqtt.client as mqtt
 from threading import Thread
 from models import Message
 import config
+import json
+import hashlib
+import datetime
+import base64
+from database import db_session  # Assuming db_session is your SQLAlchemy session
+from models import EdgeDevice, Notification
 
 # MQTT client instance
 mqtt_client = None
@@ -21,25 +27,7 @@ def on_connect(client, userdata, flags, rc):
     print(f"Subscribed to {config.MQTT_TOPIC}")
 
 def on_message(client, userdata, msg):
-    """Callback for when a message is received from the broker.
-    
-    Args:
-        client: The client instance
-        userdata: User data of any type
-        msg: The received message
-    """
-    try:
-        payload = msg.payload.decode()
-        print(f"Received message: {payload} on topic {msg.topic}")
-        
-        # Process and save the message to the database
-        Message.save_message(
-            topic=msg.topic,
-            payload=payload,
-            qos=msg.qos
-        )
-    except Exception as e:
-        print(f"Error processing message: {e}")
+    print(f"Received message on topic {msg.topic}: {msg.payload}")	
 
 def start_mqtt_client():
     """Start the MQTT client loop in a blocking manner."""
