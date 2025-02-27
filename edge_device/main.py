@@ -5,6 +5,7 @@ import socket
 import base64
 import os
 from datetime import datetime
+import random
 
 # MQTT Configuration
 BROKER = "mosquitto"
@@ -80,5 +81,6 @@ def publish_data(status):
 
 if __name__ == "__main__":
     while True:
-        publish_data("hazard")
+        status_types = random.choice(["hazard", "normal"])
+        publish_data(status_types)
         time.sleep(5)  # Publish every 5 seconds
