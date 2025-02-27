@@ -1,0 +1,4 @@
+Flask
+paho-mqtt
+SQLAlchemy
+psycopg2-binary
