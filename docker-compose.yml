@@ -1,0 +1,53 @@
+services:
+
+
+# MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto_broker
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto_config:/mosquitto/config
+    restart: always
+    networks:
+      ppe_network:
+        ipv4_address: 192.168.100.101  # Static IP for MQTT Broker
+
+# Database 
+  db-service:
+    build: ./database
+    container_name: db-service 
+    volumes:
+      - ./data-volume:/data
+    environment:
+      - DB_PATH=/data/edge_devices.db
+    command: sh -c "python /app/main.py && tail -f /dev/null"
+    restart: unless-stopped
+    networks:
+      ppe_network:
+        ipv4_address: 192.168.100.102  # Adjusted subnet if necessary
+
+
+
+# Edge Device
+  edge_device:
+    build: ./edge_device
+    container_name: edge_device
+    depends_on:
+      - mosquitto
+    restart: always  # Recommended for resiliency
+    networks:
+      ppe_network:
+        ipv4_address: 192.168.100.103  # Adjusted subnet if necessary
+
+
+
+
+networks:
+  ppe_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24  

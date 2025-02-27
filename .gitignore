@@ -1,1 +1,8 @@
-database/data-volume/edge_devices.db
+# Ignore system files
+.DS_Store
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
