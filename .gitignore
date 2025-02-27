@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -22,7 +21,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-=======
 database/data-volume/edge_devices.db
 
 # Ignore system files
@@ -34,4 +32,3 @@ __pycache__/
 *.pyo
 *.pyd
 
->>>>>>> main
