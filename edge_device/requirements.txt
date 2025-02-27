@@ -1,2 +1,6 @@
 paho-mqtt
 pillow
+numpy
+opencv-python
+torch
+ultralytics
