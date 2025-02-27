@@ -58,20 +58,19 @@ services:
     networks: # Add the networks section here
       ppe_network:
 
-  # Edge Device
-  edge_device:
-    build: ./edge_device
-    container_name: edge_device
-    depends_on:
-      - mosquitto
-    restart: always  # Recommended for resiliency
-    networks:
-      ppe_network:
-        ipv4_address: 192.168.100.103  # Adjusted subnet if necessary
 
-volumes:
-  postgres_data:
-    name: edgedevice_postgres_data
+# # Edge Device
+#   edge_device:
+#     build: ./edge_device
+#     container_name: edge_device
+#     depends_on:
+#       - mosquitto
+#     restart: always
+#     networks:
+#       ppe_network:
+#         ipv4_address: 192.168.100.103
+
+
 
 networks:
   ppe_network:
