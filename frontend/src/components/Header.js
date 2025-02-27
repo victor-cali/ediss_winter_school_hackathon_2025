@@ -15,118 +15,66 @@ import { useNavigate } from "react-router-dom";
 import Tooltip from "@mui/material/Tooltip";
 import LogoImg from "../assets/logo.png";
 import { Button } from "@mui/material";
+import tmp from "../assets/example.json";
 
 const initialAlerts = [
   {
-    id: 1,
-    camera: 3,
-    section: 4,
-    status: "active",
-    timestamp: "2024-02-26 12:30",
-    annotations: "Anomaly detected",
-    deviceId: "D123",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector B",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
+    // id: 1,
+    // camera: 3,
+    // section: 4,
+    // status: "active",
+    // timestamp: "2024-02-26 12:30",
+    // annotations: "Anomaly detected",
+    // deviceId: "D123",
+  },
+  // {
+  //   ip_address: '123',
+  //   timestamp: '2024-02-25 15:45',
+  //   camera_sector: '1',
+  //   status: 'Active',
+  //   image: '',
+  // },
+  {
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector A",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
   {
-    id: 2,
-    camera: 6,
-    section: 2,
-    status: "active",
-    timestamp: "2024-02-25 15:45",
-    annotations: "False positive",
-    deviceId: "D456",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector A",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
   {
-    id: 3,
-    camera: 7,
-    section: 5,
-    status: "active",
-    timestamp: "2024-02-26 09:10",
-    annotations: "Checked manually",
-    deviceId: "D789",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector C",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
   {
-    id: 4,
-    camera: 6,
-    section: 1,
-    status: "active",
-    timestamp: "2024-02-26 14:00",
-    annotations: "Movement detected",
-    deviceId: "D321",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector A",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
   {
-    id: 5,
-    camera: 9,
-    section: 6,
-    status: "active",
-    timestamp: "2024-02-26 12:30",
-    annotations: "Anomaly detected",
-    deviceId: "D123",
-  },
-  {
-    id: 6,
-    camera: 2,
-    section: 9,
-    status: "active",
-    timestamp: "2024-02-25 15:45",
-    annotations: "False positive",
-    deviceId: "D456",
-  },
-  {
-    id: 7,
-    camera: 4,
-    section: 5,
-    status: "active",
-    timestamp: "2024-02-26 09:10",
-    annotations: "Checked manually",
-    deviceId: "D789",
-  },
-  {
-    id: 8,
-    camera: 7,
-    section: 4,
-    status: "active",
-    timestamp: "2024-02-26 14:00",
-    annotations: "Movement detected",
-    deviceId: "D321",
-  },
-  {
-    id: 9,
-    camera: 3,
-    section: 5,
-    status: "active",
-    timestamp: "2024-02-26 12:30",
-    annotations: "Anomaly detected",
-    deviceId: "D123",
-  },
-  {
-    id: 10,
-    camera: 4,
-    section: 9,
-    status: "active",
-    timestamp: "2024-02-25 15:45",
-    annotations: "False positive",
-    deviceId: "D456",
-  },
-  {
-    id: 11,
-    camera: 1,
-    section: 1,
-    status: "active",
-    timestamp: "2024-02-26 09:10",
-    annotations: "Checked manually",
-    deviceId: "D789",
-  },
-  {
-    id: 12,
-    camera: 9,
-    section: 1,
-    status: "active",
-    timestamp: "2024-02-26 14:00",
-    annotations: "Movement detected",
-    deviceId: "D321",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector A",
+    status: "hazard", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
 ];
-
 export default function Header() {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -136,7 +84,7 @@ export default function Header() {
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const activeAlerts = React.useMemo(
-    () => initialAlerts.filter((alert) => alert.status === "active"),
+    () => initialAlerts.filter((alert) => alert.status === "hazard"),
     []
   ).length;
 

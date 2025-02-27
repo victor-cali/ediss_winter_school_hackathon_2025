@@ -14,125 +14,87 @@ import {
   ToggleButton,
   Modal,
   Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
 } from "@mui/material";
 import WarningIcon from "@mui/icons-material/Warning";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SampleImg from "../assets/sample.jpg";
 import TuneIcon from "@mui/icons-material/Tune";
+import tmp from "../assets/example.json";
 
 const initialAlerts = [
   {
-    id: 1,
-    camera: 3,
-    section: 4,
-    status: "active",
-    timestamp: "2024-02-26 12:30",
-    annotations: "Anomaly detected",
-    deviceId: "D123",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector B",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
+    // id: 1,
+    // camera: 3,
+    // section: 4,
+    // status: "active",
+    // timestamp: "2024-02-26 12:30",
+    // annotations: "Anomaly detected",
+    // deviceId: "D123",
+  },
+  // {
+  //   ip_address: '123',
+  //   timestamp: '2024-02-25 15:45',
+  //   camera_sector: '1',
+  //   status: 'Active',
+  //   image: '',
+  // },
+  {
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector A",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
   {
-    id: 2,
-    camera: 6,
-    section: 2,
-    status: "active",
-    timestamp: "2024-02-25 15:45",
-    annotations: "False positive",
-    deviceId: "D456",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector A",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
   {
-    id: 3,
-    camera: 7,
-    section: 5,
-    status: "active",
-    timestamp: "2024-02-26 09:10",
-    annotations: "Checked manually",
-    deviceId: "D789",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector C",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
   {
-    id: 4,
-    camera: 6,
-    section: 1,
-    status: "active",
-    timestamp: "2024-02-26 14:00",
-    annotations: "Movement detected",
-    deviceId: "D321",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector A",
+    status: "normal", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
   {
-    id: 5,
-    camera: 9,
-    section: 6,
-    status: "active",
-    timestamp: "2024-02-26 12:30",
-    annotations: "Anomaly detected",
-    deviceId: "D123",
-  },
-  {
-    id: 6,
-    camera: 2,
-    section: 9,
-    status: "active",
-    timestamp: "2024-02-25 15:45",
-    annotations: "False positive",
-    deviceId: "D456",
-  },
-  {
-    id: 7,
-    camera: 4,
-    section: 5,
-    status: "active",
-    timestamp: "2024-02-26 09:10",
-    annotations: "Checked manually",
-    deviceId: "D789",
-  },
-  {
-    id: 8,
-    camera: 7,
-    section: 4,
-    status: "active",
-    timestamp: "2024-02-26 14:00",
-    annotations: "Movement detected",
-    deviceId: "D321",
-  },
-  {
-    id: 9,
-    camera: 3,
-    section: 5,
-    status: "active",
-    timestamp: "2024-02-26 12:30",
-    annotations: "Anomaly detected",
-    deviceId: "D123",
-  },
-  {
-    id: 10,
-    camera: 4,
-    section: 9,
-    status: "active",
-    timestamp: "2024-02-25 15:45",
-    annotations: "False positive",
-    deviceId: "D456",
-  },
-  {
-    id: 11,
-    camera: 1,
-    section: 1,
-    status: "active",
-    timestamp: "2024-02-26 09:10",
-    annotations: "Checked manually",
-    deviceId: "D789",
-  },
-  {
-    id: 12,
-    camera: 9,
-    section: 1,
-    status: "active",
-    timestamp: "2024-02-26 14:00",
-    annotations: "Movement detected",
-    deviceId: "D321",
+    ip_address: "127.0.1.1",
+    timestamp: "2025-02-27T11:55:21.200775",
+    camera_sector: "Sector A",
+    status: "hazard", //hazard
+    image: `data:image/png;base64,${tmp.image}`,
   },
 ];
 
 export default function Alerts() {
-  const [alerts, setAlerts] = useState(initialAlerts);
+  const [alerts, setAlerts] = useState(
+    initialAlerts.map((alert, index) => ({
+      ...alert,
+      id: index, // Assign a unique ID
+    }))
+  );
   const [statusFilter, setStatusFilter] = useState("all");
   const [cameraFilter, setCameraFilter] = useState("all");
   const [sectionFilter, setSectionFilter] = useState("all");
@@ -149,7 +111,7 @@ export default function Alerts() {
   const handleResolve = () => {
     setAlerts(
       alerts.map((alert) =>
-        alert.id === selectedAlert.id ? { ...alert, status: "resolved" } : alert
+        alert.id === selectedAlert.id ? { ...alert, status: "hazard" } : alert
       )
     );
     setSelectedAlert(null);
@@ -158,18 +120,18 @@ export default function Alerts() {
   const filteredAlerts = alerts.filter((alert) => {
     return (
       (statusFilter === "all" || alert.status === statusFilter) &&
-      (cameraFilter === "all" || alert.camera === cameraFilter) &&
-      (sectionFilter === "all" || alert.section === sectionFilter)
+      (cameraFilter === "all" || alert.camera_sector === cameraFilter)
+      // && (sectionFilter === "all" || alert.section === sectionFilter)
     );
   });
 
   return (
     <Box display="flex" p={3}>
-      <Box flex={3}>
+      <Box flex={3.5}>
         <Typography variant="h4" gutterBottom>
           Alerts
         </Typography>
-        <List>
+        {/* <List>
           {filteredAlerts.length > 0 ? (
             filteredAlerts.map((alert, index) => (
               <React.Fragment key={alert.id}>
@@ -182,7 +144,7 @@ export default function Alerts() {
                     )}
                   </ListItemIcon>
                   <ListItemText
-                    primary={`Alert #${alert.id}. Camera ${alert.camera}. Section ${alert.section}.`}
+                    primary={`Alert #${alert.id}. Camera ${alert.camera_sector}. Section ${alert.section}.`}
                     sx={{ color: alert.status === "active" ? "red" : "blue" }}
                   />
                   <Box>
@@ -200,7 +162,62 @@ export default function Alerts() {
               No alerts found.
             </Typography>
           )}
-        </List>
+        </List> */}
+            <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell><strong></strong></TableCell> {/* For the Icon */}
+            <TableCell><strong>Number</strong></TableCell>
+            <TableCell><strong>IP Address</strong></TableCell>
+            <TableCell><strong>Camera Sector</strong></TableCell>
+            <TableCell><strong>Timestamp</strong></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {filteredAlerts.length > 0 ? (
+            filteredAlerts.map((alert) => {
+              const isHazard = alert.status === "hazard";
+              return (
+                <TableRow
+                  key={alert.id}
+                  hover
+                  onClick={() => handleAlertClick(alert)}
+                  mb={1}
+                  sx={{
+                    cursor: "pointer",
+                    backgroundColor: isHazard ? "rgba(255, 0, 0, 0.2)" : "rgba(0, 128, 0, 0.2)",
+                    borderBottom: "2px solid white", 
+                  }}
+                >
+                  <TableCell>
+                    <IconButton>
+                      {isHazard ? (
+                        <WarningIcon sx={{ color: "red" }} />
+                      ) : (
+                        <CheckCircleIcon sx={{ color: "green" }} />
+                      )}
+                    </IconButton>
+                  </TableCell>
+                  <TableCell>{`Alert #${alert.id}`}</TableCell>
+                  <TableCell>{alert.ip_address}</TableCell>
+                  <TableCell>{alert.camera_sector}</TableCell>
+                  <TableCell>{new Date(alert.timestamp).toLocaleString()}</TableCell>
+                </TableRow>
+              );
+            })
+          ) : (
+            <TableRow>
+              <TableCell colSpan={5} align="center">
+                <Typography sx={{ color: "gray", mt: 2 }}>
+                  No alerts found.
+                </Typography>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
       </Box>
 
       {/* Filters */}
@@ -229,30 +246,32 @@ export default function Alerts() {
           sx={{ mb: 2 }}
         >
           <ToggleButton value="all">All</ToggleButton>
-          <ToggleButton value="active" sx={{ color: "red" }}>
-            Active
+          <ToggleButton value="hazard" sx={{ color: "red" }}>
+            Hazard
           </ToggleButton>
-          <ToggleButton value="resolved" sx={{ color: "green" }}>
-            Resolved
+          <ToggleButton value="normal" sx={{ color: "green" }}>
+            Normal
           </ToggleButton>
         </ToggleButtonGroup>
 
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <Typography variant="subtitle1">Camera</Typography>
+          <Typography variant="subtitle1">Camera Sector</Typography>
           <Select
             value={cameraFilter}
             onChange={(e) => setCameraFilter(e.target.value)}
           >
             <MenuItem value="all">All</MenuItem>
-            {[...new Set(alerts.map((alert) => alert.camera))].map((camera) => (
-              <MenuItem key={camera} value={camera}>
-                Camera {camera}
-              </MenuItem>
-            ))}
+            {[...new Set(alerts.map((alert) => alert.camera_sector))].map(
+              (camera) => (
+                <MenuItem key={camera} value={camera}>
+                  Camera {camera}
+                </MenuItem>
+              )
+            )}
           </Select>
         </FormControl>
 
-        <FormControl fullWidth>
+        {/* <FormControl fullWidth>
           <Typography variant="subtitle1">Section</Typography>
           <Select
             value={sectionFilter}
@@ -267,7 +286,7 @@ export default function Alerts() {
               )
             )}
           </Select>
-        </FormControl>
+        </FormControl> */}
       </Box>
 
       {/* Modal */}
@@ -301,7 +320,9 @@ export default function Alerts() {
                 color={"white"}
                 sx={{ borderTopLeftRadius: 10, borderTopRightRadius: 10 }}
               >
-                <Typography variant="h4">Alert #{selectedAlert.id}</Typography>
+                <Typography variant="h4">
+                  Alert {selectedAlert.id + 1}
+                </Typography>
               </Box>
               <Box
                 mt={1}
@@ -312,56 +333,44 @@ export default function Alerts() {
                   alignItems: "flex-start",
                 }}
               >
-                <Box sx={{ width: "80%" }}>
+                <Box sx={{ width: "80%", alignItems: "space-between", height: '350px' }}>
+                  <Box mb={27}>
                   {/* <Typography variant="h4" sx={{ color: "blue", mb: 2 }}>
                     Alerts Details
                   </Typography> */}
                   <Typography>
-                    <strong>Camera:</strong> {selectedAlert.camera}
+                    <strong>Camera Sector:</strong> {selectedAlert.camera_sector}
                   </Typography>
-                  <Typography>
+                  {/* <Typography>
                     <strong>Section:</strong> {selectedAlert.section}
-                  </Typography>
+                  </Typography> */}
                   <Typography>
                     <strong>Timestamp:</strong> {selectedAlert.timestamp}
                   </Typography>
-                  <Typography>
+                  {/* <Typography>
                     <strong>Annotations:</strong> {selectedAlert.annotations}
                   </Typography>
                   <Typography>
                     <strong>Device ID:</strong> {selectedAlert.deviceId}
-                  </Typography>
+                  </Typography> */}
                   <Typography>
                     <strong>Status:</strong> {selectedAlert.status}
                   </Typography>
-                </Box>
-                <Box>
-                  <img
-                    src={SampleImg}
-                    alt="Alert"
-                    width="100%"
-                    style={{ borderRadius: 5 }}
-                  />
-                </Box>
-              </Box>
-              <Box mt={2} mb={4} display="flex" justifyContent="flex-start">
-                <Box
-                  display="flex"
-                  justifyContent={"center"}
-                  gap={2}
-                  sx={{ alignSelf: "center", width: "100%", height: 50 }}
-                >
+                  </Box>
                   <Button
                     variant="contained"
                     color="primary"
                     onClick={handleCloseModal}
                     // sx={{borderRadius: 50}}
+                    mt={3}
                     sx={{
-                      backgroundColor: "#d9d9d9",
+                      backgroundColor: "#559c8b",
                       color: "white",
                       borderRadius: "10px",
                       fontWeight: 600,
                       width: "200px",
+                      // alignSelf: "flex-end",
+                      height: "50px",
                       "&:hover": {
                         // backgroundColor: "#4a897a", // Slightly darker green on hover
                         boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)", // Soft shadow effect
@@ -371,29 +380,14 @@ export default function Alerts() {
                   >
                     Close
                   </Button>
-
-                  {selectedAlert.status === "active" && (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleResolve}
-                      // sx={{borderRadius: 50}}
-                      sx={{
-                        backgroundColor: "#559c8b",
-                        color: "white",
-                        borderRadius: "10px",
-                        fontWeight: 600,
-                        width: "200px",
-                        "&:hover": {
-                          // backgroundColor: "#4a897a", // Slightly darker green on hover
-                          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)", // Soft shadow effect
-                          transform: "scale(1.05)", // Slight size increase
-                        },
-                      }}
-                    >
-                      Resolve
-                    </Button>
-                  )}
+                </Box>
+                <Box>
+                  <img
+                    src={`data:image/png;base64,${tmp.image}`}
+                    alt="Alert"
+                    width="100%"
+                    style={{ borderRadius: 5 }}
+                  />
                 </Box>
               </Box>
             </>
