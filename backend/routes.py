@@ -12,7 +12,7 @@ def register_routes(app):
     def home():
         """Home page route that displays recent messages."""
         messages = Message.get_messages(limit=10)
-        
+        print(messages)
         # Simple HTML template for displaying messages
         template = """
         <!DOCTYPE html>
