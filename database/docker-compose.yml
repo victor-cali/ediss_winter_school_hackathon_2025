@@ -1,11 +1,27 @@
+version: '3.8'
+
 services:
-  db-service:
+  postgres:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - ./data-volume:/data
-    environment:
-      - DB_PATH=/data/edge_devices.db
-    command: sh -c "python /app/main.py && tail -f /dev/null"
+    container_name: edgedevice-db
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: edgedevicedb
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    name: edgedevice_postgres_data
