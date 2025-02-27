@@ -18,20 +18,47 @@ services:
 # Database 
   db-service:
     build: ./database
-    container_name: db-service 
-    volumes:
-      - ./data-volume:/data
-    environment:
-      - DB_PATH=/data/edge_devices.db
-    command: sh -c "python /app/main.py && tail -f /dev/null"
+    container_name: edgedevice-db
     restart: unless-stopped
-    networks:
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: edgedevicedb
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: # Add the networks section here
       ppe_network:
-        ipv4_address: 192.168.100.102  # Adjusted subnet if necessary
 
+  # Flask application
+  backend-service:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db-service
+      - DB_PORT=5432
+      - DB_NAME=edgedevicedb
+      - MQTT_BROKER=mosquitto
+    depends_on:
+      db-service:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    networks: # Add the networks section here
+      ppe_network:
 
-
-# Edge Device
+  # Edge Device
   edge_device:
     build: ./edge_device
     container_name: edge_device
@@ -42,8 +69,9 @@ services:
       ppe_network:
         ipv4_address: 192.168.100.103  # Adjusted subnet if necessary
 
-
-
+volumes:
+  postgres_data:
+    name: edgedevice_postgres_data
 
 networks:
   ppe_network:
